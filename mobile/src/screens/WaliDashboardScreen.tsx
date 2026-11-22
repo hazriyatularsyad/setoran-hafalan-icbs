@@ -156,7 +156,6 @@ export default function WaliDashboardScreen() {
       >
         {/* Top Hero Background (User + Credit Card) */}
         <View style={styles.topHeroContainer}>
-          <Text style={styles.islamicCrescent}>☪</Text>
           {/* Header Bento Grid */}
           <View style={styles.userBentoRow}>
             <GlassPanel style={styles.userBentoMain}>
@@ -195,9 +194,7 @@ export default function WaliDashboardScreen() {
                   resizeMode="cover"
                 />
                 <View style={styles.cardGradientOverlay} />
-                <View style={styles.cardGeoRing}>
-                  <Text style={styles.cardCrescent}>☪</Text>
-                </View>
+                <View style={styles.cardGeoRing} />
                 {!flipped ? (
                   <View style={styles.cardFace}>
                     {/* Top Header */}
