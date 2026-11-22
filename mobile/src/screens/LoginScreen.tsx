@@ -8,6 +8,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -20,7 +21,6 @@ export default function LoginScreen({ navigation }: Props) {
   const [username, setUsername] = useState('muhaffiz@icbs.sch.id');
   const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
 
   const handleLogin = () => {
     if (role === 'MUHAFFIZ') {
@@ -32,191 +32,283 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Background */}
-
-      {/* Brand Header */}
-      <View style={styles.brandHeader}>
-        <View style={styles.logoBadge}>
-          <Image
-            source={require('../../assets/logo.png')}
-            style={styles.logoSmall}
-            resizeMode="contain"
-          />
+      {/* Top Campus Hero */}
+      <View style={styles.hero}>
+        <Image
+          source={require('../../assets/campus-bg.jpg')}
+          style={styles.heroBg}
+          resizeMode="cover"
+        />
+        <View style={styles.heroScrim} />
+        <View style={styles.heroContent}>
+          <View style={styles.logoBox}>
+            <Image
+              source={require('../../assets/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={styles.heroTitle}>Tahfidz ICBS</Text>
+          <Text style={styles.heroSub}>Insan Cendekia Boarding School</Text>
         </View>
-        <Text style={styles.brandTitle}>Tahfidz ICBS</Text>
-        <Text style={styles.brandSub}>Insan Cendekia Boarding School</Text>
       </View>
 
-      {/* Frosted Glass Card */}
-      <View style={styles.glassCard}>
-        {/* Role Segmented Switch */}
-        <View style={styles.roleSwitch}>
-          {(['MUHAFFIZ', 'WALI'] as const).map((r) => (
-            <TouchableOpacity
-              key={r}
-              style={[styles.roleTab, role === r && styles.roleTabActive]}
-              onPress={() => {
-                setRole(r);
-                setUsername(r === 'MUHAFFIZ' ? 'muhaffiz@icbs.sch.id' : 'wali@icbs.sch.id');
-              }}
-            >
-              <Text style={[styles.roleText, role === r && styles.roleTextActive]}>
-                {r === 'MUHAFFIZ' ? 'Muhaffiz' : 'Wali Murid'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      {/* Bottom Curved Login Sheet */}
+      <View style={styles.sheet}>
+        <ScrollView
+          contentContainerStyle={styles.sheetContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.welcomeTitle}>Assalamu'alaikum</Text>
+          <Text style={styles.welcomeSub}>
+            Pilih peran Anda untuk masuk ke aplikasi
+          </Text>
 
-        <Text style={styles.cardTitle}>Masuk ke Akun</Text>
+          {/* Role Switch */}
+          <View style={styles.roleSwitch}>
+            {(['MUHAFFIZ', 'WALI'] as const).map((r) => {
+              const active = role === r;
+              return (
+                <TouchableOpacity
+                  key={r}
+                  style={[
+                    styles.roleBtn,
+                    active && {
+                      backgroundColor:
+                        r === 'MUHAFFIZ' ? COLORS.primary : COLORS.accent,
+                    },
+                  ]}
+                  onPress={() => {
+                    setRole(r);
+                    setUsername(
+                      r === 'MUHAFFIZ'
+                        ? 'muhaffiz@icbs.sch.id'
+                        : 'wali@icbs.sch.id'
+                    );
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.roleText,
+                      active && { color: '#fff', fontWeight: '700' },
+                    ]}
+                  >
+                    {r === 'MUHAFFIZ' ? 'Muhaffiz' : 'Wali Murid'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-        <Text style={styles.label}>Username / No. HP</Text>
-        <View style={styles.inputWrap}>
+          <Text style={styles.label}>Username / No. HP</Text>
           <TextInput
-            placeholder="Masukkan username"
-            placeholderTextColor="rgba(255,255,255,0.45)"
             value={username}
             onChangeText={setUsername}
+            placeholder="Masukkan username"
+            placeholderTextColor="#94a3b8"
             style={styles.input}
             autoCapitalize="none"
           />
-        </View>
 
-        <Text style={styles.label}>Password</Text>
-        <View style={styles.inputWrap}>
-          <TextInput
-            placeholder="Masukkan password"
-            placeholderTextColor="rgba(255,255,255,0.45)"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            style={styles.input}
-          />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Text style={styles.toggleText}>{showPassword ? 'Tutup' : 'Lihat'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={styles.rememberRow}
-          onPress={() => setRememberMe(!rememberMe)}
-        >
-          <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-            {rememberMe && <Text style={styles.checkMark}>✓</Text>}
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.passwordWrap}>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Masukkan password"
+              placeholderTextColor="#94a3b8"
+              secureTextEntry={!showPassword}
+              style={styles.passwordInput}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Text style={styles.toggleText}>
+                {showPassword ? 'Tutup' : 'Lihat'}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.rememberText}>Ingat saya di perangkat ini</Text>
-        </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.loginBtn,
-            { backgroundColor: role === 'MUHAFFIZ' ? COLORS.primary : COLORS.secondary },
-          ]}
-          onPress={handleLogin}
-        >
-          <Text style={styles.loginBtnText}>
-            Masuk sebagai {role === 'MUHAFFIZ' ? 'Muhaffiz' : 'Wali Murid'}
+          <TouchableOpacity
+            style={[
+              styles.submitBtn,
+              {
+                backgroundColor:
+                  role === 'MUHAFFIZ' ? COLORS.primary : COLORS.accent,
+              },
+            ]}
+            onPress={handleLogin}
+          >
+            <Text style={styles.submitText}>
+              Masuk sebagai {role === 'MUHAFFIZ' ? 'Muhaffiz' : 'Wali Murid'}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={styles.footer}>
+            TA 2026/2027 • Pemantauan Hafalan Al-Qur'an
           </Text>
-        </TouchableOpacity>
+        </ScrollView>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  root: { flex: 1, backgroundColor: '#064E3B' },
+  hero: {
+    height: '50%',
+    minHeight: 320,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#042F2E',
-    padding: 20,
+    overflow: 'hidden',
   },
-  brandHeader: {
-    alignItems: 'center',
-    marginBottom: 22,
+  heroBg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
   },
-  logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+  heroScrim: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(6, 78, 59, 0.72)',
+  },
+  heroContent: { alignItems: 'center', paddingTop: 20 },
+  logoBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 22,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
   },
-  logoSmall: { width: 48, height: 48 },
-  brandTitle: { fontSize: 22, fontWeight: '800', color: '#fff', letterSpacing: 0.5 },
-  brandSub: { fontSize: 12, color: '#FDE68A', fontWeight: '600', marginTop: 2 },
+  logo: { width: 54, height: 54 },
+  heroTitle: { fontSize: 24, fontWeight: '800', color: '#fff', letterSpacing: 0.4 },
+  heroSub: { fontSize: 12, color: '#FDE68A', fontWeight: '600', marginTop: 3 },
 
-  glassCard: {
-    width: '100%',
-    maxWidth: 370,
-    padding: 22,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+  sheet: {
+    flex: 1,
+    backgroundColor: '#EEF2F6',
+    borderTopLeftRadius: 34,
+    borderTopRightRadius: 34,
+    marginTop: -24,
+    overflow: 'hidden',
   },
+  sheetContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+    padding: 20,
+    paddingTop: 24,
+    paddingBottom: 32,
+    maxWidth: 440,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  welcomeTitle: { fontSize: 22, fontWeight: '800', color: '#0f172a' },
+  welcomeSub: { fontSize: 13, color: '#64748b', marginTop: 4, marginBottom: 18 },
+
   roleSwitch: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-    borderRadius: 12,
-    padding: 4,
+    backgroundColor: '#EEF2F6',
+    borderRadius: 16,
+    padding: 5,
     marginBottom: 18,
-  },
-  roleTab: {
-    flex: 1,
-    paddingVertical: 9,
-    borderRadius: 9,
-    alignItems: 'center',
-  },
-  roleTabActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-  },
-  roleText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.75)' },
-  roleTextActive: { color: '#042F2E', fontWeight: '700' },
-
-  cardTitle: { fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 14 },
-  label: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: 6 },
-  inputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
+    borderColor: '#FFFFFF',
+    shadowColor: '#94a3b8',
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 4, height: 4 },
+  },
+  roleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  roleText: { fontSize: 13, fontWeight: '600', color: '#475569' },
+
+  label: { fontSize: 12, fontWeight: '700', color: '#334155', marginBottom: 6 },
+  input: {
+    backgroundColor: '#E6EBF1',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
     borderRadius: 12,
     paddingHorizontal: 14,
-    marginBottom: 14,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#0f172a',
+    marginBottom: 10,
+    shadowColor: '#94a3b8',
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    shadowOffset: { width: 2, height: 2 },
   },
-  input: { flex: 1, paddingVertical: 11, color: '#fff', fontSize: 14 },
-  toggleText: { fontSize: 12, fontWeight: '700', color: '#FACC15' },
-
-  rememberRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 5,
+  passwordWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E6EBF1',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-    marginRight: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  checkMark: { color: '#fff', fontSize: 11, fontWeight: '800' },
-  rememberText: { color: 'rgba(255,255,255,0.85)', fontSize: 12 },
-
-  loginBtn: {
-    width: '100%',
-    paddingVertical: 14,
+    borderColor: '#FFFFFF',
     borderRadius: 12,
-    alignItems: 'center',
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    shadowColor: '#94a3b8',
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    shadowOffset: { width: 2, height: 2 },
   },
-  loginBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#0f172a',
+  },
+  toggleText: { fontSize: 12, fontWeight: '700', color: '#d97706' },
+
+  submitBtn: {
+    paddingVertical: 13,
+    borderRadius: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    shadowOffset: { width: 4, height: 6 },
+  },
+  submitText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  footer: {
+    marginTop: 16,
+    marginBottom: 14,
+    textAlign: 'center',
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '600',
+  },
+  neuInfoRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  neuInfoCard: {
+    flex: 1,
+    backgroundColor: '#EEF2F6',
+    borderRadius: 16,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    shadowColor: '#94a3b8',
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 4, height: 4 },
+  },
+  neuInfoTitle: { fontSize: 12, fontWeight: '700', color: '#1e293b' },
+  neuInfoSub: { fontSize: 11, color: '#64748b', marginTop: 2 },
 });
