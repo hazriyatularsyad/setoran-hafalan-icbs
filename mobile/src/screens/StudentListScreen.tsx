@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Image,
   Modal,
   Alert,
+  Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -37,6 +38,15 @@ export default function StudentListScreen() {
   const [ayahEnd, setAyahEnd] = useState('20');
   const [score, setScore] = useState('92');
   const [notes, setNotes] = useState('');
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(18)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: false }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 400, useNativeDriver: false }),
+    ]).start();
+  }, []);
 
   const filtered = MOCK_STUDENTS.filter(
     (s) =>
@@ -55,6 +65,7 @@ export default function StudentListScreen() {
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
         {/* Top User Bento Row */}
         <View style={styles.userBentoRow}>
           <GlassPanel style={styles.userBentoMain}>
@@ -162,6 +173,7 @@ export default function StudentListScreen() {
             </TouchableOpacity>
           </GlassPanel>
         ))}
+        </Animated.View>
       </ScrollView>
 
       {/* Bottom Sheet Modal Input Setoran */}

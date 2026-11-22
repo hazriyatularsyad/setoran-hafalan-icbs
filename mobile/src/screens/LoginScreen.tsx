@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -21,6 +22,15 @@ export default function LoginScreen({ navigation }: Props) {
   const [username, setUsername] = useState('muhaffiz@icbs.sch.id');
   const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(28)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: false }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: false }),
+    ]).start();
+  }, []);
 
   const handleLogin = () => {
     if (role === 'MUHAFFIZ') {
@@ -57,7 +67,7 @@ export default function LoginScreen({ navigation }: Props) {
       </View>
 
       {/* Bottom Curved Login Sheet */}
-      <View style={styles.sheet}>
+      <Animated.View style={[styles.sheet, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         <ScrollView
           contentContainerStyle={styles.sheetContent}
           showsVerticalScrollIndicator={false}
@@ -149,7 +159,7 @@ export default function LoginScreen({ navigation }: Props) {
             TA 2026/2027 • Pemantauan Hafalan Al-Qur'an
           </Text>
         </ScrollView>
-      </View>
+      </Animated.View>
     </KeyboardAvoidingView>
   );
 }
@@ -197,8 +207,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF2F6',
     borderTopLeftRadius: 34,
     borderTopRightRadius: 34,
+    borderTopWidth: 4,
+    borderTopColor: COLORS.accent,
     marginTop: -24,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: -8 },
+    elevation: 14,
   },
   sheetContent: {
     flexGrow: 1,
@@ -277,11 +294,14 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderColor: 'rgba(255,255,255,0.45)',
+    borderBottomWidth: 4,
+    borderBottomColor: 'rgba(0,0,0,0.22)',
     shadowColor: '#0f172a',
-    shadowOpacity: 0.22,
-    shadowRadius: 10,
-    shadowOffset: { width: 4, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
   },
   submitText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   footer: {

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Pressable,
   Image,
+  Platform,
+  Animated,
 } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
@@ -124,6 +126,33 @@ export default function WaliDashboardScreen() {
   const [notifEnabled, setNotifEnabled] = useState(true)
   const [selectedDate, setSelectedDate] = useState(22)
   const [cardCollapsed, setCardCollapsed] = useState(false)
+  const flipAnim = useRef(new Animated.Value(0)).current
+  const tabFadeAnim = useRef(new Animated.Value(1)).current
+  const tabSlideAnim = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    tabFadeAnim.setValue(0)
+    tabSlideAnim.setValue(12)
+    Animated.parallel([
+      Animated.timing(tabFadeAnim, { toValue: 1, duration: 240, useNativeDriver: false }),
+      Animated.timing(tabSlideAnim, { toValue: 0, duration: 240, useNativeDriver: false }),
+    ]).start()
+  }, [activeTab])
+
+  const handleFlipCard = () => {
+    Animated.spring(flipAnim, {
+      toValue: flipped ? 0 : 1,
+      friction: 8,
+      tension: 12,
+      useNativeDriver: false,
+    }).start()
+    setFlipped(!flipped)
+  }
+
+  const cardRotateY = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  })
   const [openDropdown, setOpenDropdown] = useState<"period" | "type" | null>(
     null,
   )
@@ -186,10 +215,10 @@ export default function WaliDashboardScreen() {
 
           {(activeTab === "beranda" || activeTab === "riwayat" || activeTab === "akademik") && !cardCollapsed && (
             <Pressable
-              onPress={() => setFlipped(!flipped)}
+              onPress={handleFlipCard}
               style={styles.cardWrapper}
             >
-              <View style={styles.creditCard}>
+              <Animated.View style={[styles.creditCard, { transform: [{ rotateY: cardRotateY }] }]}>
                 <Image
                   source={require("../../assets/campus-bg.jpg")}
                   style={styles.cardBgImage}
@@ -264,7 +293,7 @@ export default function WaliDashboardScreen() {
                     </View>
                   </View>
                 ) : (
-                  <View style={styles.cardFace}>
+                  <View style={[styles.cardFace, { transform: [{ rotateY: "180deg" }] }]}>
                     <View style={styles.backHeader}>
                       <Text style={styles.backTitle}>
                         INFORMASI HALAQAH & WALI
@@ -294,19 +323,20 @@ export default function WaliDashboardScreen() {
                     </Text>
                   </View>
                 )}
-              </View>
+              </Animated.View>
             </Pressable>
           )}
-          {(activeTab === "beranda" || activeTab === "riwayat" || activeTab === "akademik") && (
-            <TouchableOpacity
-              style={styles.collapseBtn}
-              onPress={() => setCardCollapsed(!cardCollapsed)}
-            >
-              <Text style={styles.collapseIcon}>{cardCollapsed ? "⌄" : "⌃"}</Text>
-            </TouchableOpacity>
-          )}
         </View>
+        {(activeTab === "beranda" || activeTab === "riwayat" || activeTab === "akademik") && (
+          <TouchableOpacity
+            style={styles.collapseBtn}
+            onPress={() => setCardCollapsed(!cardCollapsed)}
+          >
+            <Text style={styles.collapseIcon}>{cardCollapsed ? "⌄" : "⌃"}</Text>
+          </TouchableOpacity>
+        )}
 
+        <Animated.View style={{ opacity: tabFadeAnim, transform: [{ translateY: tabSlideAnim }] }}>
         {activeTab === "beranda" && (
           <View style={styles.lowerContent}>
             {/* 2-Column Summary Stats: Tahfidz & Akademik */}
@@ -723,19 +753,25 @@ export default function WaliDashboardScreen() {
             {/* Jadwal Ujian */}
             <GlassPanel style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>📝 Jadwal Ujian Mendatang</Text>
+                <Text style={styles.sectionTitle}>Jadwal Ujian Mendatang</Text>
                 <Text style={[styles.sectionMeta, { color: COLORS.secondary }]}>PAS Ganjil</Text>
               </View>
               {[
-                { title: "Ujian Bahasa Arab", date: "02 Des 2026 • 08:00 WIB" },
-                { title: "Ujian Matematika", date: "03 Des 2026 • 08:00 WIB" },
-                { title: "Ujian Fiqih & Tahfidz", date: "04 Des 2026 • 08:00 WIB" },
+                { day: "02", mon: "DES", title: "Ujian Bahasa Arab", time: "08:00 WIB" },
+                { day: "03", mon: "DES", title: "Ujian Matematika", time: "08:00 WIB" },
+                { day: "04", mon: "DES", title: "Ujian Fiqih & Tahfidz", time: "08:00 WIB" },
               ].map((u) => (
-                <View key={u.title} style={styles.akademikRow}>
-                  <Text style={{ fontSize: 16 }}>📌</Text>
+                <View key={u.title} style={styles.examRow}>
+                  <View style={styles.examDateBadge}>
+                    <Text style={styles.examDateDay}>{u.day}</Text>
+                    <Text style={styles.examDateMon}>{u.mon}</Text>
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.akademikTitle}>{u.title}</Text>
-                    <Text style={styles.akademikSub}>{u.date}</Text>
+                    <Text style={styles.akademikSub}>PAS Ganjil • Ruang 8A</Text>
+                  </View>
+                  <View style={styles.examTimePill}>
+                    <Text style={styles.examTimeText}>{u.time}</Text>
                   </View>
                 </View>
               ))}
@@ -795,23 +831,29 @@ export default function WaliDashboardScreen() {
             </TouchableOpacity>
           </GlassPanel>
         )}
+        </Animated.View>
       </ScrollView>
 
       {/* Floating Glass Bottom Navbar */}
       <View style={styles.floatingNavWrap}>
         <GlassPanel style={styles.floatingNav}>
           {[
-            { key: "beranda", icon: "🏠", label: "Beranda" },
-            { key: "riwayat", icon: "📖", label: "Tahfidz" },
             { key: "akademik", icon: "🎓", label: "Akademik" },
+            { key: "riwayat", icon: "📖", label: "Tahfidz" },
+            { key: "beranda", icon: "🏠", label: "Beranda" },
             { key: "rapor", icon: "📄", label: "Rapor" },
             { key: "profil", icon: "👤", label: "Profil" },
           ].map((tab) => {
             const isActive = activeTab === tab.key
+            const isCenter = tab.key === "beranda"
             return (
               <TouchableOpacity
                 key={tab.key}
-                style={[styles.navItem, isActive && styles.navItemActive]}
+                style={[
+                  styles.navItem,
+                  isCenter && styles.navItemElevated,
+                  isActive && styles.navItemActive,
+                ]}
                 onPress={() => {
                   setActiveTab(tab.key as any)
                   if (tab.key === "rapor") {
@@ -819,7 +861,15 @@ export default function WaliDashboardScreen() {
                   }
                 }}
               >
-                <Text style={styles.navIcon}>{tab.icon}</Text>
+                {isCenter ? (
+                  <Image
+                    source={require("../../assets/login-bg.png")}
+                    style={styles.navCenterLogo}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Text style={styles.navIcon}>{tab.icon}</Text>
+                )}
                 <Text
                   style={[styles.navLabel, isActive && styles.navLabelActive]}
                 >
@@ -1122,9 +1172,12 @@ const styles = StyleSheet.create({
 
   sectionCard: {
     padding: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.75)",
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.86)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.9)",
+    borderColor: "rgba(5, 150, 105, 0.22)",
+    borderTopWidth: 3,
+    borderTopColor: COLORS.primary,
     marginBottom: 18,
   },
   sectionHeader: {
@@ -1298,10 +1351,11 @@ const styles = StyleSheet.create({
   reportBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 
   floatingNavWrap: {
-    position: "absolute",
+    position: Platform.OS === "web" ? ("fixed" as any) : "absolute",
     bottom: 16,
     left: 16,
     right: 16,
+    zIndex: 100,
     alignItems: "center",
   },
   floatingNav: {
@@ -1328,7 +1382,21 @@ const styles = StyleSheet.create({
   navItemActive: {
     backgroundColor: "rgba(5, 150, 105, 0.14)",
   },
+  navItemElevated: {
+    marginTop: -22,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 24,
+    backgroundColor: "#ffffff",
+    borderWidth: 2,
+    borderColor: COLORS.accent,
+    shadowColor: "#059669",
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
   navIcon: { fontSize: 16, marginBottom: 2 },
+  navCenterLogo: { width: 22, height: 22, marginBottom: 2 },
   navLabel: { fontSize: 11, fontWeight: "600", color: "#64748b" },
   navLabelActive: { color: COLORS.primary, fontWeight: "700" },
 
@@ -1404,7 +1472,7 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "rgba(29, 78, 216, 0.22)",
   },
   nilaiMiniVal: { fontSize: 18, fontWeight: "800", color: COLORS.secondary },
   nilaiMiniLbl: { fontSize: 11, fontWeight: "600", color: "#475569", marginTop: 2 },
@@ -1443,20 +1511,18 @@ const styles = StyleSheet.create({
   calSubjectName: { fontSize: 12, fontWeight: "600", color: COLORS.textDark, flex: 1 },
   collapseBtn: {
     alignSelf: "center",
-    marginTop: 6,
-    marginBottom: -12,
-    width: 44,
-    height: 24,
-    borderRadius: 12,
+    marginTop: -18,
+    marginBottom: 14,
+    width: 68,
+    height: 22,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
     backgroundColor: "#fff",
-    borderWidth: 1.5,
+    borderWidth: 2.5,
+    borderTopWidth: 0,
     borderColor: COLORS.accent,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
   },
   collapseIcon: { fontSize: 14, fontWeight: "800", color: COLORS.primary, lineHeight: 16 },
   legendRow: { flexDirection: "row", gap: 16, marginBottom: 8 },
