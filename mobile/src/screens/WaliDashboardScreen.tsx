@@ -113,7 +113,7 @@ export default function WaliDashboardScreen() {
   const navigation = useNavigation<NavProp>()
   const [flipped, setFlipped] = useState(false)
   const [activeTab, setActiveTab] = useState<
-    "beranda" | "riwayat" | "rapor" | "profil"
+    "beranda" | "riwayat" | "akademik" | "rapor" | "profil"
   >("beranda")
   const [periodFilter, setPeriodFilter] = useState<"all" | "week" | "month">(
     "all",
@@ -122,6 +122,8 @@ export default function WaliDashboardScreen() {
     "ALL" | "ZIYADAH" | "MURAJAAH" | "TASMI"
   >("ALL")
   const [notifEnabled, setNotifEnabled] = useState(true)
+  const [selectedDate, setSelectedDate] = useState(22)
+  const [cardCollapsed, setCardCollapsed] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<"period" | "type" | null>(
     null,
   )
@@ -182,7 +184,7 @@ export default function WaliDashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          {activeTab === "beranda" && (
+          {(activeTab === "beranda" || activeTab === "riwayat" || activeTab === "akademik") && !cardCollapsed && (
             <Pressable
               onPress={() => setFlipped(!flipped)}
               style={styles.cardWrapper}
@@ -295,9 +297,111 @@ export default function WaliDashboardScreen() {
               </View>
             </Pressable>
           )}
+          {(activeTab === "beranda" || activeTab === "riwayat" || activeTab === "akademik") && (
+            <TouchableOpacity
+              style={styles.collapseBtn}
+              onPress={() => setCardCollapsed(!cardCollapsed)}
+            >
+              <Text style={styles.collapseIcon}>{cardCollapsed ? "⌄" : "⌃"}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {activeTab === "beranda" && (
+          <View style={styles.lowerContent}>
+            {/* 2-Column Summary Stats: Tahfidz & Akademik */}
+            <View style={styles.statsRow}>
+              <GlassPanel style={styles.statBox}>
+                <Text style={styles.statHeader}>📖 Rata-rata Nilai Tahfidz</Text>
+                <View style={styles.statValueRow}>
+                  <Text style={styles.statBig}>{STUDENT.avg_score}</Text>
+                  <Text style={styles.statSubBlue}> /100</Text>
+                </View>
+                <Text style={styles.statFooterGold}>Predikat Mumtaz</Text>
+              </GlassPanel>
+
+              <GlassPanel style={[styles.statBox, { borderTopColor: COLORS.secondary }]}>
+                <Text style={styles.statHeader}>🎓 Nilai Akademik</Text>
+                <View style={styles.statValueRow}>
+                  <Text style={styles.statBig}>89.5</Text>
+                  <Text style={styles.statSubEmerald}> /100</Text>
+                </View>
+                <Text style={styles.statFooterMuted}>Kelas {STUDENT.class_name}</Text>
+                <Text style={styles.statTrendUp}>▲ +2.4 vs semester lalu</Text>
+              </GlassPanel>
+            </View>
+
+            {/* Tren Nilai Tahfidz & Akademik */}
+            <GlassPanel style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Tren Nilai Tahfidz & Akademik</Text>
+                <Text style={styles.sectionMeta}>5 Bulan Terakhir</Text>
+              </View>
+              <View style={styles.legendRow}>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: COLORS.primary }]} />
+                  <Text style={styles.legendText}>Tahfidz</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: COLORS.accent }]} />
+                  <Text style={styles.legendText}>Akademik</Text>
+                </View>
+              </View>
+              <View style={styles.chartRow}>
+                {[
+                  { label: "Jul", tahfidz: 82, akademik: 85 },
+                  { label: "Agu", tahfidz: 85, akademik: 86 },
+                  { label: "Sep", tahfidz: 86, akademik: 88 },
+                  { label: "Okt", tahfidz: 88, akademik: 89 },
+                  { label: "Nov", tahfidz: 92, akademik: 90 },
+                ].map((m) => (
+                  <View key={m.label} style={styles.barCol}>
+                    <View style={styles.dualBarWrap}>
+                      <View style={styles.dualBarTrack}>
+                        <View style={[styles.barFill, { height: `${m.tahfidz}%`, backgroundColor: COLORS.primary }]} />
+                      </View>
+                      <View style={styles.dualBarTrack}>
+                        <View style={[styles.barFill, { height: `${m.akademik}%`, backgroundColor: COLORS.accent }]} />
+                      </View>
+                    </View>
+                    <Text style={styles.barLabel}>{m.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </GlassPanel>
+
+            {/* Jadwal Ujian Akademik */}
+            <GlassPanel style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Jadwal Ujian Akademik</Text>
+                <TouchableOpacity onPress={() => setActiveTab("akademik")}>
+                  <Text style={[styles.sectionMeta, { color: COLORS.secondary }]}>Lihat Semua ›</Text>
+                </TouchableOpacity>
+              </View>
+              {[
+                { day: "02", mon: "DES", title: "Ujian Bahasa Arab", time: "08:00 WIB" },
+                { day: "03", mon: "DES", title: "Ujian Matematika", time: "08:00 WIB" },
+                { day: "04", mon: "DES", title: "Ujian Fiqih & Tahfidz", time: "08:00 WIB" },
+              ].map((u) => (
+                <View key={u.title} style={styles.examRow}>
+                  <View style={styles.examDateBadge}>
+                    <Text style={styles.examDateDay}>{u.day}</Text>
+                    <Text style={styles.examDateMon}>{u.mon}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.akademikTitle}>{u.title}</Text>
+                    <Text style={styles.akademikSub}>PAS Ganjil • Ruang 8A</Text>
+                  </View>
+                  <View style={styles.examTimePill}>
+                    <Text style={styles.examTimeText}>{u.time}</Text>
+                  </View>
+                </View>
+              ))}
+            </GlassPanel>
+          </View>
+        )}
+
+        {activeTab === "riwayat" && (
           <View style={styles.lowerContent}>
             {/* 2-Column Summary Stats */}
             <View style={styles.statsRow}>
@@ -326,20 +430,14 @@ export default function WaliDashboardScreen() {
             {/* Progress Bar & Trend Chart */}
             <GlassPanel style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>
-                  Tren Nilai 5 Setoran Terakhir
-                </Text>
+                <Text style={styles.sectionTitle}>Tren Nilai 5 Setoran Terakhir</Text>
                 <Text style={styles.sectionMeta}>
                   Target: {STUDENT.total_juz}/{STUDENT.target_juz} Juz
                 </Text>
               </View>
-
               <View style={styles.progressTrack}>
-                <View
-                  style={[styles.progressFill, { width: `${progressPct}%` }]}
-                />
+                <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
               </View>
-
               <View style={styles.chartRow}>
                 {RECENT_LOGS.slice()
                   .reverse()
@@ -347,9 +445,7 @@ export default function WaliDashboardScreen() {
                     <View key={item.id} style={styles.barCol}>
                       <Text style={styles.barScore}>{item.score}</Text>
                       <View style={styles.barTrack}>
-                        <View
-                          style={[styles.barFill, { height: `${item.score}%` }]}
-                        />
+                        <View style={[styles.barFill, { height: `${item.score}%` }]} />
                       </View>
                       <Text style={styles.barLabel} numberOfLines={1}>
                         {item.surah.replace("Al-", "")}
@@ -359,154 +455,6 @@ export default function WaliDashboardScreen() {
               </View>
             </GlassPanel>
 
-            {/* Recent Memorization Logs */}
-            <View style={styles.listHeader}>
-              <Text style={styles.sectionTitle}>Riwayat Setoran Terbaru</Text>
-              <Text style={styles.listCount}>
-                {filteredLogs.length} setoran
-              </Text>
-            </View>
-
-            {/* Dropdown Filter & Sort */}
-            <View style={styles.dropdownRow}>
-              <View style={styles.dropdownCol}>
-                <TouchableOpacity
-                  style={styles.dropdownBtn}
-                  onPress={() =>
-                    setOpenDropdown(openDropdown === "period" ? null : "period")
-                  }
-                >
-                  <Text style={styles.dropdownLabel}>
-                    Periode:{" "}
-                    {periodFilter === "all"
-                      ? "Semua"
-                      : periodFilter === "week"
-                        ? "Minggu Ini"
-                        : "Bulan Ini"}
-                  </Text>
-                  <Text style={styles.dropdownArrow}>▾</Text>
-                </TouchableOpacity>
-                {openDropdown === "period" && (
-                  <GlassPanel style={styles.dropdownMenu}>
-                    {[
-                      { key: "all", label: "Semua" },
-                      { key: "week", label: "Minggu Ini" },
-                      { key: "month", label: "Bulan Ini" },
-                    ].map((p) => (
-                      <TouchableOpacity
-                        key={p.key}
-                        style={[
-                          styles.dropdownItem,
-                          periodFilter === p.key && styles.dropdownItemActive,
-                        ]}
-                        onPress={() => {
-                          setPeriodFilter(p.key as any)
-                          setOpenDropdown(null)
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.dropdownItemText,
-                            periodFilter === p.key && styles.filterTextActive,
-                          ]}
-                        >
-                          {p.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </GlassPanel>
-                )}
-              </View>
-
-              <View style={styles.dropdownCol}>
-                <TouchableOpacity
-                  style={styles.dropdownBtn}
-                  onPress={() =>
-                    setOpenDropdown(openDropdown === "type" ? null : "type")
-                  }
-                >
-                  <Text style={styles.dropdownLabel}>
-                    Jenis: {typeFilter === "ALL" ? "Semua" : typeFilter}
-                  </Text>
-                  <Text style={styles.dropdownArrow}>▾</Text>
-                </TouchableOpacity>
-                {openDropdown === "type" && (
-                  <GlassPanel style={styles.dropdownMenu}>
-                    {[
-                      { key: "ALL", label: "Semua Jenis" },
-                      { key: "ZIYADAH", label: "Ziyadah" },
-                      { key: "MURAJAAH", label: "Muraja'ah" },
-                      { key: "TASMI", label: "Tasmi'" },
-                    ].map((t) => (
-                      <TouchableOpacity
-                        key={t.key}
-                        style={[
-                          styles.dropdownItem,
-                          typeFilter === t.key && styles.dropdownItemRoyal,
-                        ]}
-                        onPress={() => {
-                          setTypeFilter(t.key as any)
-                          setOpenDropdown(null)
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.dropdownItemText,
-                            typeFilter === t.key && styles.filterTextActive,
-                          ]}
-                        >
-                          {t.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </GlassPanel>
-                )}
-              </View>
-            </View>
-
-            {filteredLogs.map((log) => {
-              const badge = TYPE_STYLE[log.type] || TYPE_STYLE.ZIYADAH
-              return (
-                <GlassPanel
-                  key={log.id}
-                  style={[
-                    styles.logCard,
-                    {
-                      backgroundColor: badge.cardBg,
-                      borderLeftWidth: 4,
-                      borderLeftColor: badge.border,
-                    },
-                  ]}
-                >
-                  <View style={styles.logTop}>
-                    <View
-                      style={[styles.typeBadge, { backgroundColor: badge.bg }]}
-                    >
-                      <Text style={[styles.typeText, { color: badge.text }]}>
-                        {log.type}
-                      </Text>
-                    </View>
-                    <Text style={styles.logDate}>{log.date}</Text>
-                  </View>
-                  <View style={styles.logMain}>
-                    <View style={{ flex: 1, paddingRight: 12 }}>
-                      <Text style={styles.logSurah}>
-                        QS. {log.surah} : {log.ayah}
-                      </Text>
-                      <Text style={styles.logNote}>{log.note}</Text>
-                    </View>
-                    <View style={styles.scoreCircle}>
-                      <Text style={styles.scoreValue}>{log.score}</Text>
-                    </View>
-                  </View>
-                </GlassPanel>
-              )
-            })}
-          </View>
-        )}
-
-        {activeTab === "riwayat" && (
-          <>
             <View style={styles.listHeader}>
               <Text style={styles.sectionTitle}>Semua Riwayat Setoran</Text>
               <Text style={styles.listCount}>
@@ -649,7 +597,150 @@ export default function WaliDashboardScreen() {
                 </GlassPanel>
               )
             })}
-          </>
+          </View>
+        )}
+
+        {activeTab === "akademik" && (
+          <View style={styles.lowerContent}>
+            <Text style={styles.sectionTitle}>Akademik Santri</Text>
+
+            {/* Kalender Mata Pelajaran (Real Calendar Grid) */}
+            <GlassPanel style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>📅 November 2026</Text>
+                <Text style={styles.sectionMeta}>Kelas 8A</Text>
+              </View>
+
+              <View style={styles.calWeekHeader}>
+                {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d, idx) => (
+                  <Text
+                    key={d}
+                    style={[styles.calWeekDay, idx === 0 && { color: "#ef4444" }]}
+                  >
+                    {d}
+                  </Text>
+                ))}
+              </View>
+
+              <View style={styles.calGrid}>
+                {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {
+                  const isSelected = selectedDate === day;
+                  const isSunday = day % 7 === 1;
+                  const hasExam = [2, 3, 4, 25, 26].includes(day);
+                  return (
+                    <TouchableOpacity
+                      key={day}
+                      style={[styles.calCell, isSelected && styles.calCellActive]}
+                      onPress={() => setSelectedDate(day)}
+                    >
+                      <Text
+                        style={[
+                          styles.calDayText,
+                          isSunday && { color: "#ef4444" },
+                          isSelected && styles.calDayTextActive,
+                        ]}
+                      >
+                        {day}
+                      </Text>
+                      {hasExam && (
+                        <View
+                          style={[
+                            styles.calDot,
+                            isSelected && { backgroundColor: "#FACC15" },
+                          ]}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <View style={styles.calDetailBox}>
+                <Text style={styles.calDetailTitle}>
+                  Jadwal {selectedDate} November 2026
+                </Text>
+                {(
+                  {
+                    1: [{ time: "08:00", mapel: "Kegiatan Asrama & Muroja'ah Mandiri" }],
+                    2: [
+                      { time: "07:30", mapel: "Matematika (Ust. Arif)" },
+                      { time: "09:30", mapel: "Bahasa Arab (Ust. Salman)" },
+                      { time: "13:00", mapel: "Tahfidz Al-Qur'an" },
+                    ],
+                    3: [
+                      { time: "07:30", mapel: "Fiqih Ibadah (Ust. Hendra)" },
+                      { time: "09:30", mapel: "Bahasa Inggris (Mr. Dani)" },
+                      { time: "13:00", mapel: "IPA Terpadu" },
+                    ],
+                    4: [
+                      { time: "07:30", mapel: "Sirah Nabawiyah (Ust. Budi)" },
+                      { time: "09:30", mapel: "Bahasa Indonesia" },
+                      { time: "13:00", mapel: "Praktikum IPA" },
+                    ],
+                    5: [
+                      { time: "07:30", mapel: "Aqidah Akhlak" },
+                      { time: "09:30", mapel: "Matematika Lanjutan" },
+                      { time: "13:00", mapel: "Bahasa Arab (Muhadatsah)" },
+                    ],
+                    6: [
+                      { time: "07:30", mapel: "Kajian Kitab Kuning" },
+                      { time: "09:30", mapel: "Pendidikan Jasmani" },
+                    ],
+                    0: [
+                      { time: "08:00", mapel: "Ekstrakurikuler & Pramuka" },
+                      { time: "10:30", mapel: "Tasmi' Pekanan" },
+                    ],
+                  } as Record<number, { time: string; mapel: string }[]>
+                )[selectedDate % 7].map((s, idx) => (
+                  <View key={idx} style={styles.calSubjectRow}>
+                    <Text style={styles.calSubjectTime}>{s.time}</Text>
+                    <Text style={styles.calSubjectName}>{s.mapel}</Text>
+                  </View>
+                ))}
+              </View>
+            </GlassPanel>
+
+            {/* Nilai Akademik */}
+            <GlassPanel style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>📊 Nilai Mata Pelajaran</Text>
+                <Text style={styles.sectionMeta}>Rata-rata: 89.5</Text>
+              </View>
+              <View style={styles.statsRow}>
+                {[
+                  { mapel: "B. Arab", nilai: 92 },
+                  { mapel: "Matematika", nilai: 87 },
+                  { mapel: "Fiqih", nilai: 90 },
+                ].map((n) => (
+                  <View key={n.mapel} style={styles.nilaiMiniBox}>
+                    <Text style={styles.nilaiMiniVal}>{n.nilai}</Text>
+                    <Text style={styles.nilaiMiniLbl}>{n.mapel}</Text>
+                  </View>
+                ))}
+              </View>
+            </GlassPanel>
+
+            {/* Jadwal Ujian */}
+            <GlassPanel style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>📝 Jadwal Ujian Mendatang</Text>
+                <Text style={[styles.sectionMeta, { color: COLORS.secondary }]}>PAS Ganjil</Text>
+              </View>
+              {[
+                { title: "Ujian Bahasa Arab", date: "02 Des 2026 • 08:00 WIB" },
+                { title: "Ujian Matematika", date: "03 Des 2026 • 08:00 WIB" },
+                { title: "Ujian Fiqih & Tahfidz", date: "04 Des 2026 • 08:00 WIB" },
+              ].map((u) => (
+                <View key={u.title} style={styles.akademikRow}>
+                  <Text style={{ fontSize: 16 }}>📌</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.akademikTitle}>{u.title}</Text>
+                    <Text style={styles.akademikSub}>{u.date}</Text>
+                  </View>
+                </View>
+              ))}
+            </GlassPanel>
+          </View>
         )}
 
         {activeTab === "profil" && (
@@ -711,7 +802,8 @@ export default function WaliDashboardScreen() {
         <GlassPanel style={styles.floatingNav}>
           {[
             { key: "beranda", icon: "🏠", label: "Beranda" },
-            { key: "riwayat", icon: "📖", label: "Riwayat" },
+            { key: "riwayat", icon: "📖", label: "Tahfidz" },
+            { key: "akademik", icon: "🎓", label: "Akademik" },
             { key: "rapor", icon: "📄", label: "Rapor" },
             { key: "profil", icon: "👤", label: "Profil" },
           ].map((tab) => {
@@ -1285,4 +1377,119 @@ const styles = StyleSheet.create({
   togglePill: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12, backgroundColor: "#94a3b8" },
   togglePillOn: { backgroundColor: COLORS.primary },
   togglePillText: { color: "#fff", fontSize: 11, fontWeight: "800" },
+
+  akademikRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  dayPill: {
+    backgroundColor: "rgba(5, 150, 105, 0.14)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    minWidth: 64,
+    alignItems: "center",
+  },
+  dayPillText: { fontSize: 11, fontWeight: "700", color: COLORS.primary },
+  akademikTitle: { fontSize: 13, fontWeight: "700", color: COLORS.textDark },
+  akademikSub: { fontSize: 11, color: "#64748b", marginTop: 2 },
+  nilaiMiniBox: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    padding: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  nilaiMiniVal: { fontSize: 18, fontWeight: "800", color: COLORS.secondary },
+  nilaiMiniLbl: { fontSize: 11, fontWeight: "600", color: "#475569", marginTop: 2 },
+  calWeekHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
+  calWeekDay: { width: "14.2%", textAlign: "center", fontSize: 11, fontWeight: "700", color: "#64748b" },
+  calGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: 10 },
+  calCell: {
+    width: "14.2%",
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 999,
+  },
+  calCellActive: {
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  calDayText: { fontSize: 13, fontWeight: "600", color: COLORS.textDark },
+  calDayTextActive: { color: "#fff", fontWeight: "800" },
+  calDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: COLORS.accent, marginTop: 2 },
+  calDetailBox: {
+    backgroundColor: "#f8fafc",
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+  },
+  calDetailTitle: { fontSize: 12, fontWeight: "700", color: COLORS.primary, marginBottom: 6 },
+  calSubjectRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 3 },
+  calSubjectTime: { fontSize: 11, fontWeight: "700", color: COLORS.secondary, width: 42 },
+  calSubjectName: { fontSize: 12, fontWeight: "600", color: COLORS.textDark, flex: 1 },
+  collapseBtn: {
+    alignSelf: "center",
+    marginTop: 6,
+    marginBottom: -12,
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    borderWidth: 1.5,
+    borderColor: COLORS.accent,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  collapseIcon: { fontSize: 14, fontWeight: "800", color: COLORS.primary, lineHeight: 16 },
+  legendRow: { flexDirection: "row", gap: 16, marginBottom: 8 },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { fontSize: 11, fontWeight: "600", color: "#475569" },
+  dualBarWrap: { flexDirection: "row", gap: 4, alignItems: "flex-end" },
+  dualBarTrack: { width: 12, height: 64, backgroundColor: "#e2e8f0", borderRadius: 4, justifyContent: "flex-end", overflow: "hidden" },
+  examRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  examDateBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "rgba(245, 158, 11, 0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(245, 158, 11, 0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  examDateDay: { fontSize: 14, fontWeight: "800", color: "#b45309", lineHeight: 16 },
+  examDateMon: { fontSize: 9, fontWeight: "700", color: "#d97706", letterSpacing: 0.5 },
+  examTimePill: {
+    backgroundColor: "rgba(29, 78, 216, 0.1)",
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  examTimeText: { fontSize: 11, fontWeight: "700", color: COLORS.secondary },
 })
